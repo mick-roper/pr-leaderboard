@@ -12,6 +12,7 @@ import (
 
 var port = flag.Int("port", 8080, "the port the server will listen on")
 var githubKey = flag.String("github-key", "", "the key that should be used to query the github APIs")
+var repos = flag.String("github-repos", "", "the repos that should be interrogated")
 
 func main() {
 	flag.Parse()
