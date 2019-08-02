@@ -24,7 +24,28 @@ const tpl = `
 <body>
 	<h1>Pull Request Leaderboard</h1>
 	<div>
-		{{range .Items}}<div>{{ . }}</div>{{else}}<div><strong>no rows</strong></div>{{end}}
+		<table>
+			<thead>
+				<tr>
+					<th>Username</th>
+					<th>Opened</th>
+					<th>Closed</th>
+					<th>Comments</th>
+				</tr>
+			</thead>
+			<tbody>
+			{{range .Items}}
+				<tr>
+					<td>{{.Username}}</td>
+					<td>{{.PullRequestsOpened}}</td>
+					<td>{{.PullRequestsClosed}}</td>
+					<td>{{.PullRequestComments}}</td>
+				</tr>
+			{{else}}
+				<tr><td>no data</td></tr>
+			{{end}}
+			</tbody>
+		</table>
 	</div>
 </body>
 </html>
