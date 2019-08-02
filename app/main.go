@@ -3,12 +3,40 @@ package main
 import (
 	"flag"
 	"fmt"
+	"html/template"
 	"log"
 	"net/http"
+	"strings"
 	"time"
 
 	"github.com/gorilla/mux"
 )
+
+const tpl = `
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="X-UA-Compatible" content="ie=edge">
+  <title>Pull Request Leaderboard</title>
+</head>
+<body>
+	<h1>Pull Request Leaderboard</h1>
+	<div>
+		{{range .Items}}<div>{{ . }}</div>{{else}}<div><strong>no rows</strong></div>{{end}}
+	</div>
+</body>
+</html>
+`
+
+// PullRequestData that is returned from github
+type PullRequestData struct {
+	Username            string
+	PullRequestsOpened  int
+	PullRequestsClosed  int
+	PullRequestComments int
+}
 
 var port = flag.Int("port", 8080, "the port the server will listen on")
 var githubKey = flag.String("github-key", "", "the key that should be used to query the github APIs")
@@ -16,10 +44,6 @@ var repos = flag.String("github-repos", "", "the repos that should be interrogat
 
 func main() {
 	flag.Parse()
-
-	if *githubKey == "" {
-		log.Fatal("a github key must be provided")
-	}
 
 	r := mux.NewRouter()
 
@@ -37,6 +61,31 @@ func main() {
 }
 
 func indexHandler(w http.ResponseWriter, r *http.Request) {
-	w.WriteHeader(404)
-	w.Write([]byte("404 file not found"))
+	t, err := template.New("index").Parse(tpl)
+
+	if err != nil {
+		w.WriteHeader(500)
+		w.Write([]byte(err.Error()))
+		return
+	}
+
+	items := getPullRequestData(*githubKey, strings.Split(*repos, ","))
+
+	data := struct {
+		Items []PullRequestData
+	}{
+		Items: items,
+	}
+
+	err = t.Execute(w, data)
+
+	if err != nil {
+		w.WriteHeader(500)
+		w.Write([]byte(err.Error()))
+		return
+	}
+}
+
+func getPullRequestData(key string, repos []string) []PullRequestData {
+	return []PullRequestData{}
 }
