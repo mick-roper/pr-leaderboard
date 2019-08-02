@@ -11,11 +11,18 @@ import (
 )
 
 var port = flag.Int("port", 8080, "the port the server will listen on")
+var githubKey = flag.String("github-key", "", "the key that should be used to query the github APIs")
 
 func main() {
 	flag.Parse()
 
+	if *githubKey == "" {
+		log.Fatal("a github key must be provided")
+	}
+
 	r := mux.NewRouter()
+
+	r.HandleFunc("/", indexHandler)
 
 	server := &http.Server{
 		Addr:         fmt.Sprintf(":%v", *port),
@@ -24,5 +31,11 @@ func main() {
 		ReadTimeout:  10 * time.Second,
 	}
 
+	log.Println("server listening on port", *port)
 	log.Fatal(server.ListenAndServe())
+}
+
+func indexHandler(w http.ResponseWriter, r *http.Request) {
+	w.WriteHeader(404)
+	w.Write([]byte("404 file not found"))
 }
