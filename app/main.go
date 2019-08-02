@@ -9,7 +9,6 @@ import (
 	"log"
 	"net/http"
 	"strings"
-	"sync"
 	"time"
 
 	"github.com/gorilla/mux"
@@ -122,25 +121,15 @@ func getPullRequestData(key string, repos []string) []PullRequestData {
 		return []PullRequestData{}
 	}
 
-	l := len(repos)
-	data := make([]PullRequestData, 0)
-	wg := &sync.WaitGroup{}
+	data := make([]PullRequestData, len(repos))
 
-	wg.Add(l)
+	for i, r := range repos {
+		x := getPullrequestDataForRepo(key, r)
 
-	for i := 0; i < l; i++ {
-		go func(n int, repo string, w *sync.WaitGroup) {
-			x := getPullrequestDataForRepo(key, repo)
-
-			if x != nil {
-				data[n] = *x
-			}
-
-			w.Done()
-		}(i, repos[i], wg)
+		if x != nil {
+			data[i] = *x
+		}
 	}
-
-	wg.Wait()
 
 	return data
 }
@@ -155,7 +144,7 @@ func getPullrequestDataForRepo(key, repo string) *PullRequestData {
 		return nil
 	}
 
-	req.Header.Set("x-api-key", key)
+	req.Header.Set("Authorization", "token "+key)
 
 	resp, err := client.Get(url)
 
@@ -168,6 +157,8 @@ func getPullrequestDataForRepo(key, repo string) *PullRequestData {
 
 	item := &PullRequestData{}
 	bytes, err := ioutil.ReadAll(resp.Body)
+
+	log.Println(string(bytes))
 
 	if err != nil {
 		log.Println(err)
