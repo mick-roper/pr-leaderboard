@@ -1,12 +1,15 @@
 package main
 
 import (
+	"encoding/json"
 	"flag"
 	"fmt"
 	"html/template"
+	"io/ioutil"
 	"log"
 	"net/http"
 	"strings"
+	"sync"
 	"time"
 
 	"github.com/gorilla/mux"
@@ -59,6 +62,12 @@ type PullRequestData struct {
 	PullRequestComments int
 }
 
+const rootAddr = "https://api.github.com"
+
+var client = &http.Client{
+	Timeout: time.Second * 5,
+}
+
 var port = flag.Int("port", 8080, "the port the server will listen on")
 var githubKey = flag.String("github-key", "", "the key that should be used to query the github APIs")
 var repos = flag.String("github-repos", "", "the repos that should be interrogated")
@@ -108,5 +117,62 @@ func indexHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func getPullRequestData(key string, repos []string) []PullRequestData {
-	return []PullRequestData{}
+	if key == "" {
+		log.Println("WARN: no key")
+		return []PullRequestData{}
+	}
+
+	l := len(repos)
+	data := make([]PullRequestData, 0)
+	wg := &sync.WaitGroup{}
+
+	wg.Add(l)
+
+	for i := 0; i < l; i++ {
+		go func(n int, repo string, w *sync.WaitGroup) {
+			x := getPullrequestDataForRepo(key, repo)
+
+			if x != nil {
+				data[n] = *x
+			}
+
+			w.Done()
+		}(i, repos[i], wg)
+	}
+
+	wg.Wait()
+
+	return data
+}
+
+func getPullrequestDataForRepo(key, repo string) *PullRequestData {
+	url := fmt.Sprintf("%v/repos/%v/pulls", rootAddr, repo)
+
+	req, err := http.NewRequest("GET", url, nil)
+
+	resp, err := client.Get(url)
+
+	if err != nil {
+		log.Println(err)
+		return nil
+	}
+
+	defer resp.Body.Close()
+
+	item := &PullRequestData{}
+	bytes, err := ioutil.ReadAll(resp.Body)
+
+	if err != nil {
+		log.Println(err)
+		return nil
+	}
+
+	err = json.Unmarshal(bytes, item)
+
+	if err != nil {
+		log.Println(err)
+		return nil
+	}
+
+	return item
 }
