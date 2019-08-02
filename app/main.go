@@ -150,6 +150,13 @@ func getPullrequestDataForRepo(key, repo string) *PullRequestData {
 
 	req, err := http.NewRequest("GET", url, nil)
 
+	if err != nil {
+		log.Println(err)
+		return nil
+	}
+
+	req.Header.Set("x-api-key", key)
+
 	resp, err := client.Get(url)
 
 	if err != nil {
