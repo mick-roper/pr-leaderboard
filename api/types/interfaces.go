@@ -11,6 +11,6 @@ type (
 		IncrementPullRequestOpened(author string) error
 		IncrementPullRequestComment(author string) error
 		IncrementPullRequestClosed(author string) error
-		IncrementPullRequestReviewed(author string) error
+		IncrementPullRequestApproved(author string) error
 	}
 )

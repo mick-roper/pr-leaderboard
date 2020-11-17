@@ -81,7 +81,7 @@ func (s *MemoryStore) IncrementPullRequestClosed(author string) error {
 	return nil
 }
 
-func (s *MemoryStore) IncrementPullRequestReviewed(author string) error {
+func (s *MemoryStore) IncrementPullRequestApproved(author string) error {
 	if value, exists := s.entries[author]; exists {
 		value.reviewed++
 	} else {

@@ -1,15 +1,23 @@
 package types
 
 type (
-	// PullRequestOpened describes a PR event
-	PullRequestOpened struct {
+	// GithubWebhookEvent that comes from Github
+	GithubWebhookEvent struct {
+		Action     string           `json:"action"`
+		Sender     GithubSender     `json:"sender"`
+		Repository GithubRepository `json:"repository"`
 	}
 
-	// PullRequestClosed describes a PR event
-	PullRequestClosed struct {
+	// GithubSender represents the sender of an event
+	GithubSender struct {
+		Login     string `json:"login"`
+		AvatarURL string `json:"avatar_url"`
+		Type      string `json:"type"`
 	}
 
-	// PullRequestComment describes a PR event
-	PullRequestComment struct {
+	// GithubRepository represent repo info
+	GithubRepository struct {
+		Name string `json:"name"`
+		URL  string `json:"url"`
 	}
 )
