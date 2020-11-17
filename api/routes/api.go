@@ -52,7 +52,7 @@ func (h *apiHandler) ServeHTTP(res http.ResponseWriter, req *http.Request) {
 
 			if err != nil {
 				log.Print(err)
-				log.Print(err)
+				res.WriteHeader(500)
 				return
 			}
 
