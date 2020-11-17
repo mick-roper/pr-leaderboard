@@ -9,7 +9,7 @@ import (
 type (
 	// MemoryStore stores data in memory
 	MemoryStore struct {
-		entries map[string]aggregate
+		entries map[string]*aggregate
 	}
 
 	aggregate struct {
@@ -23,7 +23,7 @@ type (
 // NewMemoryStore creates a new memory store instance
 func NewMemoryStore() *MemoryStore {
 	return &MemoryStore{
-		entries: make(map[string]aggregate),
+		entries: make(map[string]*aggregate),
 	}
 }
 
@@ -49,7 +49,7 @@ func (s *MemoryStore) IncrementPullRequestOpened(author string) error {
 	if value, exists := s.entries[author]; exists {
 		value.opened++
 	} else {
-		s.entries[author] = aggregate{
+		s.entries[author] = &aggregate{
 			opened: 1,
 		}
 	}
@@ -61,7 +61,7 @@ func (s *MemoryStore) IncrementPullRequestComment(author string) error {
 	if value, exists := s.entries[author]; exists {
 		value.comments++
 	} else {
-		s.entries[author] = aggregate{
+		s.entries[author] = &aggregate{
 			comments: 1,
 		}
 	}
@@ -73,7 +73,7 @@ func (s *MemoryStore) IncrementPullRequestClosed(author string) error {
 	if value, exists := s.entries[author]; exists {
 		value.closed++
 	} else {
-		s.entries[author] = aggregate{
+		s.entries[author] = &aggregate{
 			closed: 1,
 		}
 	}
@@ -85,7 +85,7 @@ func (s *MemoryStore) IncrementPullRequestApproved(author string) error {
 	if value, exists := s.entries[author]; exists {
 		value.reviewed++
 	} else {
-		s.entries[author] = aggregate{
+		s.entries[author] = &aggregate{
 			reviewed: 1,
 		}
 	}

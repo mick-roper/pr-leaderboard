@@ -56,6 +56,8 @@ func (h *apiHandler) ServeHTTP(res http.ResponseWriter, req *http.Request) {
 				return
 			}
 
+			res.Header().Set("content-type", "application/json")
+
 			if err = json.NewEncoder(res).Encode(items); err != nil {
 				log.Print(err)
 			}
