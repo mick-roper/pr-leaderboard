@@ -33,6 +33,11 @@ func ConfigureAPIRoutes(mux *http.ServeMux, store types.Store) error {
 }
 
 func (h *apiHandler) ServeHTTP(res http.ResponseWriter, req *http.Request) {
+	if !authorise(req) {
+		res.WriteHeader(403)
+		return
+	}
+
 	switch req.Method {
 	case http.MethodGet:
 		{
@@ -47,10 +52,7 @@ func (h *apiHandler) ServeHTTP(res http.ResponseWriter, req *http.Request) {
 			}
 
 			if err = json.NewEncoder(res).Encode(items); err != nil {
-				res.WriteHeader(204)
-			} else {
 				log.Print(err)
-				res.WriteHeader(500)
 			}
 		}
 	default:
@@ -58,4 +60,8 @@ func (h *apiHandler) ServeHTTP(res http.ResponseWriter, req *http.Request) {
 			res.WriteHeader(405)
 		}
 	}
+}
+
+func authorise(req *http.Request) bool {
+	return true
 }
