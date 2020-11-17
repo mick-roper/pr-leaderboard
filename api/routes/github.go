@@ -9,6 +9,12 @@ import (
 	"github.com/mick-roper/pr-leaderboard/api/types"
 )
 
+const (
+	eventGithubPullRequest              = "pull_request"
+	eventGithubPullRequestReview        = "pull_request_review"
+	eventGithubPullRequestReviewComment = "pull_request_review_comment"
+)
+
 type (
 	githubHandler struct {
 		store types.Store
@@ -32,44 +38,53 @@ func ConfigureGithubRoutes(mux *http.ServeMux, store types.Store) error {
 }
 
 func (h *githubHandler) ServeHTTP(res http.ResponseWriter, req *http.Request) {
-	// githubEvent := req.Header.Get("X-GitHub-Event")
+	githubEvent := req.Header.Get("X-GitHub-Event")
 	// githubSecret := req.Header.Get("X-Hub-Signature")
 
-	switch req.Method {
-	case http.MethodPost:
+	defer req.Body.Close()
+
+	if req.Method != http.MethodPost {
+		res.WriteHeader(405)
+		return
+	}
+
+	if !(githubEvent == eventGithubPullRequest || githubEvent == eventGithubPullRequestReview || githubEvent == eventGithubPullRequestReviewComment) {
+		// short circuit the code - we don't care about this event
+		log.Printf("Unsupported event received: '%v'", githubEvent)
+		res.WriteHeader(204)
+		return
+	}
+
+	event := types.GithubWebhookEvent{}
+	decoder := json.NewDecoder(req.Body)
+	if err := decoder.Decode(&event); err != nil {
+		log.Print(err)
+		res.WriteHeader(500)
+		return
+	}
+
+	switch event.Action {
+	case "opened":
 		{
-			event := types.GithubWebhookEvent{}
-			decoder := json.NewDecoder(req.Body)
-			if err := decoder.Decode(&event); err != nil {
-				log.Print(err)
-				res.WriteHeader(500)
-				return
-			}
-
-			switch event.Action {
-			case "pull_request_created":
-				{
-					h.store.IncrementPullRequestOpened(event.Sender.Login)
-				}
-			case "pull_request_comment":
-				{
-					h.store.IncrementPullRequestComment(event.Sender.Login)
-				}
-			case "pull_request_approved":
-				{
-					h.store.IncrementPullRequestApproved(event.Sender.Login)
-				}
-			case "pull_request_closed":
-				{
-					h.store.IncrementPullRequestClosed(event.Sender.Login)
-				}
-			}
-
-			res.WriteHeader(204)
+			h.store.IncrementPullRequestOpened(event.Sender.Login)
+		}
+	case "closed":
+		{
+			h.store.IncrementPullRequestComment(event.Sender.Login)
+		}
+	case "submitted":
+		{
+			h.store.IncrementPullRequestApproved(event.Sender.Login)
+		}
+	case "pull_request_closed":
+		{
+			h.store.IncrementPullRequestClosed(event.Sender.Login)
 		}
 	default:
 		{
-			res.WriteHeader(405)
+			log.Printf("unsupported event recieved: '%v'", event.Action)
 		}
 	}
+
+	res.WriteHeader(204)
 }
