@@ -30,5 +30,15 @@ func ConfigureGithubRoutes(mux *http.ServeMux, store types.Store) error {
 }
 
 func (h *githubHandler) ServeHTTP(res http.ResponseWriter, req *http.Request) {
-	res.WriteHeader(200)
+	switch req.Method {
+	case http.MethodPost:
+		{
+			res.WriteHeader(501)
+			res.Write([]byte("Not Implemented"))
+		}
+	default:
+		{
+			res.WriteHeader(405)
+		}
+	}
 }

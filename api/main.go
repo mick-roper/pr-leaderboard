@@ -17,16 +17,14 @@ import (
 )
 
 var (
-	port    int
-	sigChan = make(chan os.Signal, 1)
-	store   types.Store
+	port      int
+	storeType string
+	store     types.Store
+	sigChan   = make(chan os.Signal, 1)
 )
 
 func main() {
-	flag.IntVar(&port, "port", 35005, "The port the server will listen on")
-	flag.Parse()
-
-	store = db.NewMemoryStore()
+	store = getStore()
 	mux := http.NewServeMux()
 
 	routes.ConfigureGithubRoutes(mux, store)
@@ -48,4 +46,19 @@ func main() {
 
 	fmt.Print("Server listening at address", server.Addr)
 	log.Print(server.ListenAndServe())
+}
+
+func init() {
+	flag.IntVar(&port, "port", 35005, "The port the server will listen on")
+	flag.StringVar(&storeType, "store", "memory", "The type of store the application will use")
+	flag.Parse()
+}
+
+func getStore() types.Store {
+	switch storeType {
+	default:
+		{
+			return db.NewMemoryStore()
+		}
+	}
 }
