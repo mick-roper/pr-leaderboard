@@ -44,7 +44,7 @@ func main() {
 		server.Shutdown(context.Background())
 	}()
 
-	fmt.Print("Server listening at address", server.Addr)
+	log.Print("Server listening at address ", server.Addr)
 	log.Print(server.ListenAndServe())
 }
 
