@@ -7,33 +7,38 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/mick-roper/pr-leaderboard/api/auth"
 	"github.com/mick-roper/pr-leaderboard/api/types"
 )
 
 type (
 	apiHandler struct {
-		store types.Store
+		store    types.Store
+		keyStore auth.APIKeyStore
 	}
 )
 
 // ConfigureAPIRoutes for the server
-func ConfigureAPIRoutes(mux *http.ServeMux, store types.Store) error {
+func ConfigureAPIRoutes(mux *http.ServeMux, dataStore types.Store, apiKeyStore auth.APIKeyStore) error {
 	if mux == nil {
 		errors.New("mux is nil")
 	}
 
-	if store == nil {
-		errors.New("store is nil")
+	if dataStore == nil {
+		errors.New("dataStore is nil")
 	}
 
-	handler := apiHandler{store}
+	handler := apiHandler{
+		store:    dataStore,
+		keyStore: apiKeyStore,
+	}
 	mux.Handle("/api", &handler)
 
 	return nil
 }
 
 func (h *apiHandler) ServeHTTP(res http.ResponseWriter, req *http.Request) {
-	if !authorise(req) {
+	if !h.authorise(req) {
 		res.WriteHeader(403)
 		return
 	}
@@ -62,6 +67,9 @@ func (h *apiHandler) ServeHTTP(res http.ResponseWriter, req *http.Request) {
 	}
 }
 
-func authorise(req *http.Request) bool {
-	return true
+func (h *apiHandler) authorise(req *http.Request) bool {
+	requestAPIKey := req.Header.Get("x-api-key")
+	apiKey := h.keyStore.GetAPIKey()
+
+	return apiKey == requestAPIKey
 }

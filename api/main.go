@@ -11,24 +11,26 @@ import (
 	"syscall"
 	"time"
 
+	"github.com/mick-roper/pr-leaderboard/api/auth"
 	"github.com/mick-roper/pr-leaderboard/api/db"
 	"github.com/mick-roper/pr-leaderboard/api/routes"
 	"github.com/mick-roper/pr-leaderboard/api/types"
 )
 
 var (
-	port      int
-	storeType string
-	store     types.Store
-	sigChan   = make(chan os.Signal, 1)
+	port        int
+	storeType   string
+	dataStore   types.Store
+	apiKeyStore auth.APIKeyStore
+
+	sigChan = make(chan os.Signal, 1)
 )
 
 func main() {
-	store = getStore()
 	mux := http.NewServeMux()
 
-	routes.ConfigureGithubRoutes(mux, store)
-	routes.ConfigureAPIRoutes(mux, store)
+	routes.ConfigureGithubRoutes(mux, dataStore)
+	routes.ConfigureAPIRoutes(mux, dataStore, apiKeyStore)
 
 	server := http.Server{
 		Addr:         fmt.Sprintf(":%v", port),
@@ -53,13 +55,25 @@ func init() {
 	flag.IntVar(&port, "port", 35005, "The port the server will listen on")
 	flag.StringVar(&storeType, "store", "memory", "The type of store the application will use")
 	flag.Parse()
+
+	dataStore = getDataStore()
+	apiKeyStore = getAPIKeyStore()
 }
 
-func getStore() types.Store {
+func getDataStore() types.Store {
 	switch storeType {
 	default:
 		{
 			return db.NewMemoryStore()
 		}
 	}
+}
+
+func getAPIKeyStore() auth.APIKeyStore {
+	store, err := auth.NewSimpleAPIKeyStore("abc-123")
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	return store
 }
