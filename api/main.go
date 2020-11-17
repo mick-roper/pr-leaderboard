@@ -28,6 +28,7 @@ func main() {
 	mux := http.NewServeMux()
 
 	routes.ConfigureGithubRoutes(mux, store)
+	routes.ConfigureAPIRoutes(mux, store)
 
 	server := http.Server{
 		Addr:         fmt.Sprintf(":%v", port),
