@@ -6,6 +6,7 @@ type (
 		AuthorImageURL        string
 		PullRequestsOpened    int
 		PullRequestsCommented int
+		PullRequestsClosed    int
 		PullRequestsReviewed  int
 	}
 )

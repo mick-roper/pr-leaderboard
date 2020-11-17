@@ -1,15 +1,32 @@
 package routes
 
-import "net/http"
+import (
+	"errors"
+	"net/http"
+
+	"github.com/mick-roper/pr-leaderboard/api/types"
+)
 
 type (
-	githubHandler struct{}
+	githubHandler struct {
+		store types.Store
+	}
 )
 
 // ConfigureGithubRoutes for the server
-func ConfigureGithubRoutes(mux *http.ServeMux) {
-	handler := githubHandler{}
+func ConfigureGithubRoutes(mux *http.ServeMux, store types.Store) error {
+	if mux == nil {
+		errors.New("mux is nil")
+	}
+
+	if store == nil {
+		errors.New("store is nil")
+	}
+
+	handler := githubHandler{store}
 	mux.Handle("/github", &handler)
+
+	return nil
 }
 
 func (h *githubHandler) ServeHTTP(res http.ResponseWriter, req *http.Request) {
