@@ -1,8 +1,11 @@
-COMMIT_SHA:=$(shell git rev-parse HEAD | cut -c 1-8)
+DOCKER_IMAGE_REPO:=devteamtools/pr-leaderboard
+DOCKER_IMAGE_TAG:=$(DOCKER_IMAGE_REPO):$(shell git rev-parse HEAD | cut -c 1-8)
+DOCKER_IMAGE_LATEST:=$(DOCKER_IMAGE_REPO):LATEST
+DOCKER_HUB_USERNAME:=devanarchy
 
 .PHONY: all
 
-all: clean get test build
+all: clean get test build publish
 
 clean:
 	rm -rf bin
@@ -22,5 +25,10 @@ build-linux:
 	GOOS=linux GOARCH=amd64 go build -o bin/linux/app main.go
 
 build-docker-image:
-	docker build -t devteamtools/pr-leaderboard:$(COMMIT_SHA) .
-	docker tag devteamtools/pr-leaderboard:$(COMMIT_SHA) devteamtools/pr-leaderboard:LATEST
+	docker build -t $(DOCKER_IMAGE_TAG) .
+	docker tag $(DOCKER_IMAGE_TAG) $(DOCKER_IMAGE_LATEST)
+
+publish:
+	docker login -u $(DOCKER_HUB_USERNAME) -p $(DOCKER_HUB_TOKEN)
+	docker push $(DOCKER_IMAGE_TAG)
+	docker logout
