@@ -10,14 +10,20 @@ spec:
   selector:
     matchLabels:
       app: pr-leaderboard
+  template:
+    metadata:
+      labels:
+        app: pr-leaderbaord
     spec:
       containers:
       - name: pr-leaderboard
-        image: devteamtools/pr-leaderboard:0.1
-        env:
-          PORT: 8080
+        image: devteamtools/pr-leaderboard:LATEST
         ports:
         - containerPort: 8080
+        resources:
+            limits:
+              cpu: 250m
+              memory: 128m
 ---
 apiVersion: v1
 kind: Service
