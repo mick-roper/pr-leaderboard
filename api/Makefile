@@ -31,7 +31,7 @@ build-docker-image:
 	docker tag $(DOCKER_IMAGE_NAME) $(DOCKER_IMAGE_LATEST)
 
 publish:
-	docker login -u $(DOCKER_HUB_USERNAME) -p $(DOCKER_HUB_TOKEN)
+	echo $(DOCKER_HUB_TOKEN) | docker login -u $(DOCKER_HUB_USERNAME) --password-stdin
 	docker push $(DOCKER_IMAGE_SHA)
 	docker push $(DOCKER_IMAGE_LATEST)
 	docker logout

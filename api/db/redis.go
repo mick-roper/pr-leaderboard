@@ -85,33 +85,28 @@ func (s *RedisStore) GetReviewers() ([]types.PullRequestReviewer, error) {
 		prEventType := splits[0]
 		author := splits[1]
 
-		var item *aggregate
-		var exists bool
-
-		if item, exists = m[author]; !exists {
-			item = &aggregate{}
+		if _, exists := m[author]; !exists {
+			m[author] = &aggregate{}
 		}
 
 		switch prEventType {
 		case opened:
 			{
-				item.opened = intVal
+				m[author].opened = intVal
 			}
 		case closed:
 			{
-				item.closed = intVal
+				m[author].closed = intVal
 			}
 		case comment:
 			{
-				item.comments = intVal
+				m[author].comments = intVal
 			}
 		case reviewed:
 			{
-				item.reviewed = intVal
+				m[author].reviewed = intVal
 			}
 		}
-
-		m[author] = item
 	}
 
 	i := 0
