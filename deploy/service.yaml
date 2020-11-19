@@ -17,9 +17,12 @@ spec:
     spec:
       containers:
       - name: pr-leaderboard
-        image: devteamtools/pr-leaderboard:LATEST
+        image: devteamtools/pr-leaderboard:27c7816d
         ports:
         - containerPort: 8080
+        env:
+          STORE_TYPE: redis
+          REDIS_ADDRESS: redis
 ---
 apiVersion: apps/v1
 kind: Deployment
