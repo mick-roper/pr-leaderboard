@@ -17,7 +17,7 @@ spec:
     spec:
       containers:
       - name: pr-leaderboard
-        image: devteamtools/pr-leaderboard:bccca3f0
+        image: devteamtools/pr-leaderboard:900d519b
         ports:
         - containerPort: 8080
         env:
