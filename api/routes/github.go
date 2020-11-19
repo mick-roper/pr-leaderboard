@@ -6,6 +6,7 @@ import (
 	"log"
 	"net/http"
 
+	"github.com/gorilla/mux"
 	"github.com/mick-roper/pr-leaderboard/api/types"
 )
 
@@ -22,8 +23,8 @@ type (
 )
 
 // ConfigureGithubRoutes for the server
-func ConfigureGithubRoutes(mux *http.ServeMux, store types.Store) error {
-	if mux == nil {
+func ConfigureGithubRoutes(router *mux.Router, store types.Store) error {
+	if router == nil {
 		errors.New("mux is nil")
 	}
 
@@ -32,7 +33,7 @@ func ConfigureGithubRoutes(mux *http.ServeMux, store types.Store) error {
 	}
 
 	handler := githubHandler{store}
-	mux.Handle("/github", &handler)
+	router.Handle("/github", &handler)
 
 	return nil
 }

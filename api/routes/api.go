@@ -6,6 +6,7 @@ import (
 	"log"
 	"net/http"
 
+	"github.com/gorilla/mux"
 	"github.com/mick-roper/pr-leaderboard/api/auth"
 	"github.com/mick-roper/pr-leaderboard/api/types"
 )
@@ -18,8 +19,8 @@ type (
 )
 
 // ConfigureAPIRoutes for the server
-func ConfigureAPIRoutes(mux *http.ServeMux, dataStore types.Store, apiKeyStore auth.APIKeyStore) error {
-	if mux == nil {
+func ConfigureAPIRoutes(router *mux.Router, dataStore types.Store, apiKeyStore auth.APIKeyStore) error {
+	if router == nil {
 		errors.New("mux is nil")
 	}
 
@@ -31,7 +32,7 @@ func ConfigureAPIRoutes(mux *http.ServeMux, dataStore types.Store, apiKeyStore a
 		store:    dataStore,
 		keyStore: apiKeyStore,
 	}
-	mux.Handle("/api", &handler)
+	router.Handle("/api", &handler)
 
 	return nil
 }

@@ -11,8 +11,10 @@ import (
 	"syscall"
 	"time"
 
+	"github.com/gorilla/mux"
 	"github.com/mick-roper/pr-leaderboard/api/auth"
 	"github.com/mick-roper/pr-leaderboard/api/db"
+	"github.com/mick-roper/pr-leaderboard/api/middleware"
 	"github.com/mick-roper/pr-leaderboard/api/routes"
 	"github.com/mick-roper/pr-leaderboard/api/types"
 )
@@ -27,14 +29,17 @@ var (
 )
 
 func main() {
-	mux := http.NewServeMux()
+	router := mux.NewRouter()
 
-	routes.ConfigureGithubRoutes(mux, dataStore)
-	routes.ConfigureAPIRoutes(mux, dataStore, apiKeyStore)
+	routes.ConfigureGithubRoutes(router, dataStore)
+	routes.ConfigureAPIRoutes(router, dataStore, apiKeyStore)
+
+	loggingMiddleware := middleware.Logging{Logger: log.New(log.Writer(), "REQUEST", log.LstdFlags)}
+	router.Use(loggingMiddleware.Middleware)
 
 	server := http.Server{
 		Addr:         fmt.Sprintf(":%v", port),
-		Handler:      mux,
+		Handler:      router,
 		WriteTimeout: 10 * time.Second,
 		ReadTimeout:  5 * time.Second,
 	}
