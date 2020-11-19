@@ -5,6 +5,8 @@ import (
 	"errors"
 	"fmt"
 	"log"
+	"strconv"
+	"strings"
 
 	"github.com/go-redis/redis"
 	"github.com/mick-roper/pr-leaderboard/api/types"
@@ -18,7 +20,7 @@ const (
 	opened   = "opened/"
 	closed   = "closed/"
 	comment  = "comment/"
-	approved = "approved/"
+	reviewed = "reviewed/"
 )
 
 var ctx = context.Background()
@@ -51,11 +53,67 @@ func (s *RedisStore) GetReviewers() ([]types.PullRequestReviewer, error) {
 		return nil, err
 	}
 
-	for _, key := range keys {
-		log.Println(key)
+	type aggregate struct {
+		opened   int
+		closed   int
+		comments int
+		reviewed int
 	}
 
-	return nil, errors.New("not implemented")
+	m := map[string]*aggregate{}
+
+	for _, key := range keys {
+		val, err := s.client.Get(key).Result()
+		if err != nil {
+			return nil, err
+		}
+
+		splits := strings.Split(key, "/")
+		prEventType := splits[0]
+		author := splits[1]
+
+		var item *aggregate
+		var exists bool
+
+		if item, exists = m[author]; !exists {
+			m[author] = &aggregate{}
+			item = m[author]
+		}
+
+		intVal, _ := strconv.Atoi(val)
+
+		switch prEventType {
+		case opened:
+			{
+				item.opened = intVal
+			}
+		case closed:
+			{
+				item.closed = intVal
+			}
+		case comment:
+			{
+				item.comments = intVal
+			}
+		case reviewed:
+			{
+				item.reviewed = intVal
+			}
+		}
+	}
+
+	i := 0
+	items := make([]types.PullRequestReviewer, len(m))
+	for key, value := range m {
+		items[i].AuthorName = key
+		items[i].PullRequestsOpened = value.opened
+		items[i].PullRequestsCommented = value.comments
+		items[i].PullRequestsClosed = value.closed
+		items[i].PullRequestsReviewed = value.reviewed
+		i++
+	}
+
+	return items, nil
 }
 
 func (s *RedisStore) IncrementPullRequestOpened(author string) error {
@@ -74,7 +132,7 @@ func (s *RedisStore) IncrementPullRequestClosed(author string) error {
 }
 
 func (s *RedisStore) IncrementPullRequestApproved(author string) error {
-	key := fmt.Sprint(approved, author)
+	key := fmt.Sprint(reviewed, author)
 	return s.increment(key)
 }
 
@@ -107,7 +165,7 @@ func (s *RedisStore) increment(key string) error {
 
 func (s *RedisStore) getAllKeys() ([]string, error) {
 	keys := []string{}
-	wildcards := []string{opened + "*", closed + "*", comment + "*", approved + "*"}
+	wildcards := []string{opened + "*", closed + "*", comment + "*", reviewed + "*"}
 	for _, wildcard := range wildcards {
 		if k, err := s.client.Keys(wildcard).Result(); err == nil {
 			keys = append(keys, k...)

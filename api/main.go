@@ -56,6 +56,8 @@ func init() {
 	flag.StringVar(&storeType, "store", "memory", "The type of store the application will use")
 	flag.Parse()
 
+	log.Println("Using store type: ", storeType)
+
 	dataStore = getDataStore()
 	apiKeyStore = getAPIKeyStore()
 }
