@@ -34,7 +34,7 @@ func main() {
 	routes.ConfigureGithubRoutes(router, dataStore)
 	routes.ConfigureAPIRoutes(router, dataStore, apiKeyStore)
 
-	loggingMiddleware := middleware.Logging{Logger: log.New(log.Writer(), "REQUEST", log.Lshortfile)}
+	loggingMiddleware := middleware.Logging{Logger: log.New(log.Writer(), "REQUEST", log.LUTC)}
 	router.Use(loggingMiddleware.Middleware)
 
 	server := http.Server{
