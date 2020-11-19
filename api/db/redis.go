@@ -31,7 +31,7 @@ func NewRedisStore(addr, password string) (*RedisStore, error) {
 		return nil, errors.New("address is empty")
 	}
 
-	logger := log.New(log.Writer(), "REDIS ", log.LUTC)
+	logger := log.New(log.Writer(), "REDIS ", log.LUTC|log.Lmsgprefix)
 	client := redis.NewClient(&redis.Options{
 		Addr:     addr,
 		Password: password,
