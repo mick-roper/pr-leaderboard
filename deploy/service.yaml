@@ -39,9 +39,10 @@ apiVersion: networking.k8s.io/v1beta1
 kind: Ingress
 metadata:
   name: ingress-pr-leaderboard
+  namespace: devteamtools
   annotations:
-    # use the shared ingress-nginx
-    kubernetes.io/ingress.class: "nginx"
+    kubernetes.io/ingress.class: nginx
+    nginx.ingress.kubernetes.io/use-regex: "true"
 spec:
   rules:
   - host: pr-leaderboard.devteamtools.org
@@ -49,5 +50,5 @@ spec:
       paths:
       - path: /*
         backend:
-          serviceName: devteamtools/pr-leaderboard
+          serviceName: pr-leaderboard
           servicePort: 8080
