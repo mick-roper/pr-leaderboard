@@ -43,12 +43,12 @@ func main() {
 
 	go func() {
 		<-sigChan
-		log.Print("Server shutting down...")
+		log.Println("Server shutting down...")
 		server.Shutdown(context.Background())
 	}()
 
-	log.Print("Server listening at address ", server.Addr)
-	log.Print(server.ListenAndServe())
+	log.Println("Server listening at address ", server.Addr)
+	log.Println(server.ListenAndServe())
 }
 
 func init() {
