@@ -21,8 +21,10 @@ spec:
         ports:
         - containerPort: 8080
         env:
-          STORE_TYPE: redis
-          REDIS_ADDRESS: redis
+        - name: STORE_TYPE
+          value: redis
+        - name: REDIS_ADDRESS
+          value: redis
 ---
 apiVersion: apps/v1
 kind: Deployment
