@@ -1,8 +1,6 @@
 package db
 
 import (
-	"time"
-
 	"github.com/mick-roper/pr-leaderboard/api/types"
 )
 
@@ -27,7 +25,7 @@ func NewMemoryStore() *MemoryStore {
 	}
 }
 
-func (s *MemoryStore) GetReviewers(from, to time.Time) ([]types.PullRequestReviewer, error) {
+func (s *MemoryStore) GetReviewers() ([]types.PullRequestReviewer, error) {
 	// ignore times
 	array := make([]types.PullRequestReviewer, len(s.entries))
 	i := 0
@@ -90,5 +88,10 @@ func (s *MemoryStore) IncrementPullRequestApproved(author string) error {
 		}
 	}
 
+	return nil
+}
+
+func (s *MemoryStore) ResetCounters() error {
+	s.entries = make(map[string]*aggregate)
 	return nil
 }

@@ -5,7 +5,6 @@ import (
 	"errors"
 	"log"
 	"net/http"
-	"time"
 
 	"github.com/mick-roper/pr-leaderboard/api/auth"
 	"github.com/mick-roper/pr-leaderboard/api/types"
@@ -46,9 +45,7 @@ func (h *apiHandler) ServeHTTP(res http.ResponseWriter, req *http.Request) {
 	switch req.Method {
 	case http.MethodGet:
 		{
-			from := time.Now()
-			to := time.Now()
-			items, err := h.store.GetReviewers(from, to)
+			items, err := h.store.GetReviewers()
 
 			if err != nil {
 				log.Print(err)
