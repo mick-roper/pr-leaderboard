@@ -67,12 +67,13 @@ func getDataStore() types.Store {
 	case "redis":
 		{
 			redisAddress := os.Getenv("REDIS_ADDRESS")
+			redisPassword := os.Getenv("REDIS_PASSWORD")
 
 			if redisAddress == "" {
 				log.Fatal("REDIS_ADDRESS env var has not been set")
 			}
 
-			s, err := db.NewRedisStore(redisAddress)
+			s, err := db.NewRedisStore(redisAddress, redisPassword)
 
 			if err != nil {
 				log.Fatal(err)

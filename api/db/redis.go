@@ -25,7 +25,7 @@ const (
 	reviewed = "reviewed/"
 )
 
-func NewRedisStore(addr string) (*RedisStore, error) {
+func NewRedisStore(addr, password string) (*RedisStore, error) {
 	if addr == "" {
 		return nil, errors.New("address is empty")
 	}
@@ -33,7 +33,7 @@ func NewRedisStore(addr string) (*RedisStore, error) {
 	logger := log.New(log.Writer(), "REDIS", log.LstdFlags)
 	client := redis.NewClient(&redis.Options{
 		Addr:     addr,
-		Password: "",
+		Password: password,
 		DB:       0,
 	})
 
@@ -87,8 +87,7 @@ func (s *RedisStore) GetReviewers() ([]types.PullRequestReviewer, error) {
 		var exists bool
 
 		if item, exists = m[author]; !exists {
-			m[author] = &aggregate{}
-			item = m[author]
+			item = &aggregate{}
 		}
 
 		switch prEventType {
@@ -109,11 +108,14 @@ func (s *RedisStore) GetReviewers() ([]types.PullRequestReviewer, error) {
 				item.reviewed = intVal
 			}
 		}
+
+		m[author] = item
 	}
 
 	i := 0
 	items := make([]types.PullRequestReviewer, len(m))
 	for key, value := range m {
+		s.logger.Print("GET REVIEWERS - all items", key, value)
 		items[i].AuthorName = key
 		items[i].PullRequestsOpened = value.opened
 		items[i].PullRequestsCommented = value.comments
