@@ -14,6 +14,8 @@ import (
 
 type RedisStore struct {
 	client *redis.Client
+	logger *log.Logger
+	ctx    context.Context
 }
 
 const (
@@ -23,13 +25,12 @@ const (
 	reviewed = "reviewed/"
 )
 
-var ctx = context.Background()
-
 func NewRedisStore(addr string) (*RedisStore, error) {
 	if addr == "" {
 		return nil, errors.New("address is empty")
 	}
 
+	logger := log.New(log.Writer(), "REDIS", log.LstdFlags)
 	client := redis.NewClient(&redis.Options{
 		Addr:     addr,
 		Password: "",
@@ -37,13 +38,17 @@ func NewRedisStore(addr string) (*RedisStore, error) {
 	})
 
 	pong, err := client.Ping().Result()
-	log.Println(pong, err)
+	logger.Println(pong, err)
 
 	if err != nil {
 		return nil, err
 	}
 
-	return &RedisStore{client}, nil
+	return &RedisStore{
+		client: client,
+		ctx:    context.Background(),
+		logger: logger,
+	}, nil
 }
 
 func (s *RedisStore) GetReviewers() ([]types.PullRequestReviewer, error) {
@@ -67,6 +72,12 @@ func (s *RedisStore) GetReviewers() ([]types.PullRequestReviewer, error) {
 		if err != nil {
 			return nil, err
 		}
+		s.logger.Println("GET_REVIEWERS", key, val)
+
+		intVal, err := strconv.Atoi(val)
+		if err != nil {
+			return nil, err
+		}
 
 		splits := strings.Split(key, "/")
 		prEventType := splits[0]
@@ -79,8 +90,6 @@ func (s *RedisStore) GetReviewers() ([]types.PullRequestReviewer, error) {
 			m[author] = &aggregate{}
 			item = m[author]
 		}
-
-		intVal, _ := strconv.Atoi(val)
 
 		switch prEventType {
 		case opened:
@@ -154,7 +163,7 @@ func (s *RedisStore) ResetCounters() error {
 
 func (s *RedisStore) increment(key string) error {
 	result, err := s.client.Incr(key).Result()
-	log.Println(result)
+	s.logger.Println("INCREMENT", result)
 
 	if err != nil {
 		return err
