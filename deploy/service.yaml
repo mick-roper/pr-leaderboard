@@ -24,7 +24,7 @@ spec:
         - name: STORE_TYPE
           value: redis
         - name: REDIS_ADDRESS
-          value: redis
+          value: redis:6379
 ---
 apiVersion: apps/v1
 kind: Deployment
