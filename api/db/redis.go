@@ -79,6 +79,8 @@ func (s *RedisStore) GetReviewers() ([]types.PullRequestReviewer, error) {
 			return nil, err
 		}
 
+		s.logger.Println("GET_REVIEWERS ", key, intVal)
+
 		splits := strings.Split(key, "/")
 		prEventType := splits[0]
 		author := splits[1]
