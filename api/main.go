@@ -62,6 +62,22 @@ func init() {
 
 func getDataStore() types.Store {
 	switch storeType {
+	case "redis":
+		{
+			redisAddress := os.Getenv("REDIS_ADDRESS")
+
+			if redisAddress == "" {
+				log.Fatal("REDIS_ADDRESS env var has not been set")
+			}
+
+			s, err := db.NewRedisStore(redisAddress)
+
+			if err != nil {
+				log.Fatal(err)
+			}
+
+			return s
+		}
 	default:
 		{
 			return db.NewMemoryStore()
