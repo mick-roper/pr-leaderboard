@@ -19,10 +19,11 @@ type RedisStore struct {
 }
 
 const (
-	opened   = "opened/"
-	closed   = "closed/"
-	comment  = "comment/"
-	reviewed = "reviewed/"
+	opened    = "opened"
+	closed    = "closed"
+	comment   = "comment"
+	reviewed  = "reviewed"
+	separator = "/"
 )
 
 func NewRedisStore(addr, password string) (*RedisStore, error) {
@@ -72,39 +73,40 @@ func (s *RedisStore) GetReviewers() ([]types.PullRequestReviewer, error) {
 		if err != nil {
 			return nil, err
 		}
-		s.logger.Println("GET_REVIEWERS", key, val)
 
 		intVal, err := strconv.Atoi(val)
 		if err != nil {
 			return nil, err
 		}
 
-		s.logger.Println("GET_REVIEWERS ", key, intVal)
-
-		splits := strings.Split(key, "/")
+		splits := strings.Split(key, separator)
 		prEventType := splits[0]
 		author := splits[1]
 
-		if _, exists := m[author]; !exists {
-			m[author] = &aggregate{}
+		var item *aggregate
+		var exists bool
+
+		if item, exists = m[author]; !exists {
+			item = &aggregate{}
+			m[author] = item
 		}
 
 		switch prEventType {
 		case opened:
 			{
-				m[author].opened = intVal
+				item.opened = intVal
 			}
 		case closed:
 			{
-				m[author].closed = intVal
+				item.closed = intVal
 			}
 		case comment:
 			{
-				m[author].comments = intVal
+				item.comments = intVal
 			}
 		case reviewed:
 			{
-				m[author].reviewed = intVal
+				item.reviewed = intVal
 			}
 		}
 	}
@@ -112,7 +114,6 @@ func (s *RedisStore) GetReviewers() ([]types.PullRequestReviewer, error) {
 	i := 0
 	items := make([]types.PullRequestReviewer, len(m))
 	for key, value := range m {
-		s.logger.Print("GET REVIEWERS - all items", key, value)
 		items[i].AuthorName = key
 		items[i].PullRequestsOpened = value.opened
 		items[i].PullRequestsCommented = value.comments
@@ -125,22 +126,22 @@ func (s *RedisStore) GetReviewers() ([]types.PullRequestReviewer, error) {
 }
 
 func (s *RedisStore) IncrementPullRequestOpened(author string) error {
-	key := fmt.Sprint(opened, author)
+	key := fmt.Sprint(opened, separator, author)
 	return s.increment(key)
 }
 
 func (s *RedisStore) IncrementPullRequestComment(author string) error {
-	key := fmt.Sprint(comment, author)
+	key := fmt.Sprint(comment, separator, author)
 	return s.increment(key)
 }
 
 func (s *RedisStore) IncrementPullRequestClosed(author string) error {
-	key := fmt.Sprint(closed, author)
+	key := fmt.Sprint(closed, separator, author)
 	return s.increment(key)
 }
 
 func (s *RedisStore) IncrementPullRequestApproved(author string) error {
-	key := fmt.Sprint(reviewed, author)
+	key := fmt.Sprint(reviewed, separator, author)
 	return s.increment(key)
 }
 
